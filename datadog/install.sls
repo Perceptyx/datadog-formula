@@ -83,4 +83,7 @@ datadog-pkg:
     {%- if grains['os_family'].lower() != 'freebsd' %}
     - require:
       - pkgrepo: datadog-repo
+    {%- else %}
+    - require:
+      - pkgrepo: FreeBSD
     {%- endif %}
