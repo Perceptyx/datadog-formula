@@ -3,18 +3,24 @@
             'config': {
                 'prefix': '',
                 'root_group': 'root',
+                'agent_user': 'dd-agent',
+                'agent_group': 'dd-agent',
             },
         },
         'RedHat': {
             'config': {
                 'prefix': '',
                 'root_group': 'root',
+                'agent_user': 'dd-agent',
+                'agent_group': 'dd-agent',
             },
         },
         'FreeBSD': {
             'config': {
                 'prefix': '/usr/local',
                 'root_group': 'wheel',
+                'agent_user': 'datadog',
+                'agent_group': 'datadog',
             },
             'install_settings': {
               'services': ['datadog-agent', 'datadog-agent-trace', 'datadog-agent-process']
