@@ -84,6 +84,5 @@ datadog-pkg:
     - require:
       - pkgrepo: datadog-repo
     {%- else %}
-    - require:
-      - pkgrepo: FreeBSD
+    - fromrepo: FreeBSD
     {%- endif %}
