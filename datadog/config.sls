@@ -6,8 +6,8 @@ datadog_conf_installed:
   file.managed:
     - name: {{ config_file_path }}
     - source: salt://datadog/files/datadog.conf.jinja
-    - user: dd-agent
-    - group: dd-agent
+    - user: {{ datadog_config.agent_user }}
+    - group: {{ datadog_config.agent_group }}
     - mode: '0600'
     - template: jinja
     - require:
@@ -17,8 +17,8 @@ datadog_yaml_installed:
   file.managed:
     - name: {{ config_file_path }}
     - source: salt://datadog/files/datadog.yaml.jinja
-    - user: dd-agent
-    - group: dd-agent
+    - user: {{ datadog_config.agent_user }}
+    - group: {{ datadog_config.agent_group }}
     - mode: '0600'
     - template: jinja
     - require:
@@ -33,7 +33,7 @@ datadog_yaml_installed:
 datadog_{{ check_name }}_folder_installed:
   file.directory:
     - name: {{ datadog_install_settings.confd_path }}/{{ check_name }}.d
-    - user: dd-agent
+    - user: {{ datadog_config.agent_user }}
     - group: {{ datadog_config.root_group }}
     - mode: '0700'
     - makedirs: True
@@ -52,7 +52,7 @@ datadog_{{ check_name }}_yaml_installed:
     - name: {{ datadog_install_settings.confd_path }}/{{ check_name }}.yaml
     {%- endif %}
     - source: salt://datadog/files/conf.yaml.jinja
-    - user: dd-agent
+    - user: {{ datadog_config.agent_user }}
     - group: {{ datadog_config.root_group }}
     - mode: '0600'
     - template: jinja
@@ -63,7 +63,7 @@ datadog_{{ check_name }}_yaml_installed:
 {%- if datadog_checks[check_name].version is defined %}
 datadog_{{ check_name }}_version_{{ datadog_checks[check_name].version }}_installed:
   cmd.run:
-    - name: sudo -u dd-agent datadog-agent integration install datadog-{{ check_name }}=={{ datadog_checks[check_name].version }}
+    - name: sudo -u {{ datadog_config.agent_user }} datadog-agent integration install datadog-{{ check_name }}=={{ datadog_checks[check_name].version }}
 {%- endif %}
 {%- endif %}
 
