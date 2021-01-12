@@ -19,7 +19,7 @@
         },
         'FreeBSD': {
             'config': {
-                'prefix': '/usr/local/etc',
+                'prefix': '/usr/local',
                 'conf_dir': 'datadog',
                 'root_group': 'wheel',
                 'agent_user': 'datadog',
@@ -64,7 +64,7 @@
 
 {# Determine defaults depending on specified version #}
 {%- if latest_agent_version or parsed_version[1] != '5' %}
-    {% set conf_folder = '%s/%s'|format(datadog_config.prefix, datadog_config.conf_dir) -%}
+    {% set conf_folder = '%s/etc/%s'|format(datadog_config.prefix, datadog_config.conf_dir) -%}
     {% do datadog_install_settings.update({'config_folder': conf_folder}) %}
 {%- else %}
     {% do datadog_install_settings.update({'config_folder': datadog_config.prefix ~ '/etc/dd-agent'}) %}
