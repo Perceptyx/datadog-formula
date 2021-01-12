@@ -1,7 +1,7 @@
 {% set os_family_map = salt['grains.filter_by']({
         'Debian': {
             'config': {
-                'prefix': '/etc',
+                'prefix': '',
                 'conf_dir': 'datadog-agent',
                 'root_group': 'root',
                 'agent_user': 'dd-agent',
@@ -10,7 +10,7 @@
         },
         'RedHat': {
             'config': {
-                'prefix': '/etc',
+                'prefix': '',
                 'conf_dir': 'datadog-agent',
                 'root_group': 'root',
                 'agent_user': 'dd-agent',
