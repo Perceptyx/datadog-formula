@@ -2,30 +2,107 @@ name: Integration
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+
+      - name: Run salt-lint
+        uses: roaldnefs/salt-lint-action@master
+        env:
+          ACTION_STATE_NAME: datadog/init.sls
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@master
+        with:
+          config_file: ".yamllint"
+
+      - name: Rubocop
+        uses: andrewmcodes/rubocop-linter-action@v3.1.0
+
+      - name: Run shellcheck
+        uses: azohra/shell-linter@v0.2.0
+        with:
+          path: "**/*.sh **/*.bash **/*.ksh"
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - run: npm i @commitlint/config-conventional @commitlint/cli
+
+      - name: Add dependencies for commitlint action
+        # $GITHUB_WORKSPACE is the path to your repository
+        run: echo "::set-env name=NODE_PATH::$GITHUB_WORKSPACE/node_modules"
+        # Now the commitlint action will run
+        # considering its own dependencies and yours as well 🚀
+      - uses: wagoid/commitlint-github-action@v1
+
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        datadog_version: [ 5, 6, 7 ]
-        os: [ debian-9-2019-2-py3, ubuntu-1804-2019-2-py3, centos-7-2019-2-py3 ]
+        datadog_version: [5, 6, 7]
+        os: [debian-9-2019-2-py3, ubuntu-1804-2019-2-py3, centos-7-2019-2-py3]
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Ruby 2.6
-      uses: actions/setup-ruby@v1
-      with:
-        ruby-version: 2.6.x
+      - name: Set up Ruby 2.6
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6.x
 
-    - name: Build and test with Kitchen
-      run: |
-        gem install bundler
-        bundle install --jobs 4 --retry 3
+      - name: Build and test with Kitchen
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3
 
-    - name: "Running tests for ${{ matrix.datadog_version }}-${{ matrix.os }}"
-      run: |
-        bundle exec kitchen test datadog${{ matrix.datadog_version }}-${{ matrix.os }}
+      - name: "Running tests for ${{ matrix.datadog_version }}-${{ matrix.os }}"
+        run: |
+          bundle exec kitchen test datadog${{ matrix.datadog_version }}-${{ matrix.os }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-18.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Release
+        env:
+          MAINTAINER_TOKEN: ${{ secrets.GH_TOKEN }}
+          GOPATH: ${{ github.workspace }}
+        run: |
+          export PATH=$PATH:${{ github.workspace }}/bin
+          # Update `AUTHORS.md`
+          go get github.com/myii/maintainer
+          maintainer contributor
+
+          # Install all dependencies required for `semantic-release`
+          npm i @semantic-release/changelog@3 \
+                @semantic-release/exec@3 \
+                @semantic-release/git@7
+
+          npx semantic-release
